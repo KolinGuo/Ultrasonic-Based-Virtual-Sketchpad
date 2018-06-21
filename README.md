@@ -83,6 +83,7 @@ The CC3200 is connected to
 ![AWS Flowchart](/images/AWS_Flowchart.png "AWS Flowchart")  
 The drawing is sent to an AWS IoT thing shadow as a string of the RGB values using HTTP POST. When the thing shadow is updated, the **_Rule_IoTToS3_** will invoke a Lambda function called `SaveIoTMessageAsS3Object`, passing the message data. This function strips the RGB data from the IoT message and saves it as a binary file named **_“ImageRGBData.bin”_** into an S3 bucket (**_testforjpeg_**). When the binary file is generated in the **_testforjpeg_** S3 bucket, an S3 Put event occurs which invokes another Lambda function called `ConvertRGBToJpeg`, passing the binary file location. This function converts the binary file to a PNG image file and saves it as **_“image.png”_** into another S3 bucket named **_testforjpegjpeg_**. Then, user can download the PNG file. Both Lambda functions are written in Python. `ConvertRGBToJpeg` function uses OpenCV and NumPy libraries to convert RGB data to a PNG file.  
 ![SaveIoTMessageAsS3Object Lambda Function](/images/SaveIoTMessageAsS3Object.png "SaveIoTMessageAsS3Object Lambda Function")  
+
 <center> Figure 1</center>  
 
 
@@ -92,6 +93,24 @@ The drawing is sent to an AWS IoT thing shadow as a string of the RGB values usi
 
 Initially, the `ConvertRGBToJpeg` function converted the RGB data to a JPEG file. However, we found that our 32x32 image is blurry. This is because JPEG is a lossy compression image format and it does not work very well for an image with such few pixels. Therefore, we modified the `ConvertRGBToJpeg` function to save the image as a PNG file which is a lossless image format and thus produces an accurate image.  
 
+## Future Improvements
+* Better sensors. 
+    * Because a lot of the design choices were made due to the limitation of the ultrasonic sensors, we want to use better sensors with wider measuring angles and higher accuracy. That way we will have a smaller setup and larger sketch area. We will also be able to draw in higher resolution with more accurate paint brush. 
+    * Also, the latency of drawing would become significant in professional usage. 
+*	Send file directly to AWS S3 bucket. 
+    * In this lab, we tried to save the binary file of picture locally on CC3200 flash and send it to AWS S3 bucket using HTTP PUT or POST. We have successfully implemented saving binary file on CC3200 and can open it on a computer. However, in order to directly use HTTP PUT or POST to upload file to S3 bucket, we need to authenticate requests using **_AWS Signature Version 4_**. The signature calculation for the authorization header is very complex involving _URI encoding_, _SHA256Hash calculation_, and _HMAC-SHA256 conversion_. As a result, we were not able to implement at this time. In the future, if we can directly send binary files from CC3200 to S3 bucket, we can bypass the size limit of HTTP POST JSON message, which is 8KB, and upload higher resolution images.
+*	More functionalities. 
+    *	The sketchpad features that we implemented by now are basic color changes (10 different colors) and resetting current drawing. It would be better if we can add more functionalities in the future. 
+    *	Examples are line thickness adjustment, custom color selection, background color selection, zoom in and out, different paint brushes (hardness and feathering) and so on. 
+*	Notify user about successful image generation in AWS S3 bucket.
+    *	Right now, when the PNG image file is successfully generated in the S3 bucket, there is no notification to the user. In the future, we can send the image through email to user’s email address or send a text message to user notifying the results. Another way is to connect to Facebook or Twitter through **_IFTTT_** to post the image. 
+*	Allow painting more naturally.
+    *	Using more sensors, we can allow user to paint by actually holding a pen with hand movement just like painting on paper. 
+    *	However, this is hard to implement with ultrasonic-like distance sensor because there are slight differences in how people holds the pen and draws with it. It’s better to either use a trackpad/touchscreen as the sketchpad or add sensors directly to the tip of the pen. However, this deviates from the original idea of this project (a virtual sketchpad) and very few of the finished work can be reused. 
+*	3D painting with pressure sensing. 
+    *	Add more sensors to detect the pressure user applied to the pen. Use the pressure to adjust the size of the paint brush. 
+    *	In order to implement this functionality, the pressure sensor is better to be attached at the tip of the pen.  
+
 ## Acknowledgements
   * [Professor Soheil Ghiasi](http://web.ece.ucdavis.edu/~soheil/)
   * TA: [Dan Fong](http://lepsucd.com/?page_id=601)
@@ -99,3 +118,23 @@ Initially, the `ConvertRGBToJpeg` function converted the RGB data to a JPEG file
 
 ## Credits
   * The code for collecting data from Ultrasonic sensor HC-SR04 is originally writted by [Akash Salow](https://github.com/sal0w). The GitHub page is referenced [here](https://github.com/sal0w/CC3200-Ultrasonic-sensor-HC-Sr04). 
+
+## References and Resources
+For AWS IoT: 
+1. [Creating a Lambda Rule](https://docs.aws.amazon.com/iot/latest/developerguide/iot-lambda-rule.html)  
+
+For AWS Lambda Function: 
+1.	[Set Up an AWS Account (Administrator) to Invoke and Configure Lambda Functions](https://docs.aws.amazon.com/lambda/latest/dg/setup.html)  
+2.	[Set Up the AWS Command Line Interface (AWS CLI)](https://docs.aws.amazon.com/lambda/latest/dg/setup-awscli.html)  
+3.	[Sample Events Published by Event Sources (S3 Bucket Put Event)](https://docs.aws.amazon.com/lambda/latest/dg/eventsources.html#eventsources-s3-put)  
+4.	[Create a Lambda Deployment Package using an EC2 Instance](https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example-deployment-pkg.html#with-s3-example-deployment-pkg-python)  
+5.	[API Reference](https://docs.aws.amazon.com/lambda/latest/dg/API_Reference.html)  
+
+For AWS EC2 Instance:
+1.	[Setting Up with Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/get-set-up-for-amazon-ec2.html)  
+
+For AWS S3 Bucket:
+1. [PUT Object using REST API](https://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectPUT.html)  
+2.	[POST Object using REST API](https://docs.aws.amazon.com/AmazonS3/latest/API/RESTObjectPOST.html)  
+3.	[Signature Calculations for the Authorization Header: Transferring Payload in a Single Chunk (AWS Signature Version 4) for PUT/GET](https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-header-based-auth.html)  
+4.	[Signature Calculations for the Authorization Header: Transferring Payload in Multiple Chunks (Chunked Upload) (AWS Signature Version 4) for PUT/GET](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-streaming.html)  
