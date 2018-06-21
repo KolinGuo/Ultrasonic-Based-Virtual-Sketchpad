@@ -11,8 +11,8 @@ Today many artists use digital sketchpads to draw artworks on the computer. Howe
 In this open lab project, we implement a “virtual” sketch pad of 32 by 32 pixels using TI CC3200 LaunchPad and two ultrasonic sensors. The painting is displayed on the 128x128 OLED screen in real time. User can also interact with the IR remote to pick the colors of the pen and send the painting to Amazon Web Services (AWS) S3 bucket which automatically converts the painting to a PNG file for downloads. 
 
 ## Top-Level Description
-![](/images/Top-Level.png "Top-Level Block Diagram")
-![](/images/Top-DownView.PNG "Top-Down View of the Sketchpad")  
+![Top-Level Block Diagram](/images/Top-Level.png "Top-Level Block Diagram")
+![Top-Down View of the Sketchpad](/images/Top-Down_View.PNG "Top-Down View of the Sketchpad")  
 
 The CC3200 is connected to  
   * Two ultrasonic sensors using GPIO pins  
@@ -39,20 +39,14 @@ The CC3200 is connected to
 
   The buttons (0-9) on the remote are programmed to change the color of the pen according to the color mapping summarized in the table below. The MUTE button is programmed to clear the drawing on the screen and LAST button is programmed to send a string containing the pixel values of the sketch to AWS.  
 
-  | IR Remote Keys | Color Mapping/Functionality |
-  |:--------------:|:---------------------------:|
-  | 0 | Black `0x000000`|
-  | 1 | White `0xFFFFFF`|
-  | 2 | Red `0xFF0000`|
-  | 3 | Orange `0xFF8000`|
-  | 4 | Yellow `0xFFFF00`|
-  | 5 | Green `0x00FF00`|
-  | 6 | Cyan `0x00FFFF`|
-  | 7 | Azure `0x0080FF`|
-  | 8 | Blue `0x0000FF`|
-  | 9 | Purple `0x7F00FF`|
-  | MUTE | Clear current drawing |
-  | LAST | Send current drawing to AWS |
+  | IR Remote Keys | Color Mapping/Functionality | IR Remote Keys | Color Mapping/Functionality |
+  |:--------------:|:---------------------------:|:--------------:|:---------------------------:|
+  | 0 | Black `0x000000`| 6 | Cyan `0x00FFFF`|
+  | 1 | White `0xFFFFFF`| 7 | Azure `0x0080FF`|
+  | 2 | Red `0xFF0000`| 8 | Blue `0x0000FF`|
+  | 3 | Orange `0xFF8000`| 9 | Purple `0x7F00FF`|
+  | 4 | Yellow `0xFFFF00`| MUTE | Clear current drawing |
+  | 5 | Green `0x00FF00`| LAST | Send current drawing to AWS |  
 
 ## CC3200 Pin Connections
   | Package Pin # | UART/SPI/GPIO Signals | Usage |
@@ -69,6 +63,25 @@ The CC3200 is connected to
   | 55 | UART0_TX | UART0 TX Data |
   | 57 | UART0_RX | UART0 RX Data |
   | 2 | GPIO_11   | Green LED. Not used actually, can be removed |
+
+## Code Description
++  `IRIntHandler()` collects input from IR sensor.  
++  `US1IntHandler()` starts timer of the 1st ultrasonic sensor when positive edge is detected on echo pin. Then it records the time and stops the timer when negative edge is detected.  
++  `US2IntHandler()` starts timer of the 2nd ultrasonic sensor when positive edge is detected on echo pin. Then it records the time and stops the timer when negative edge is detected.  
++  `TimerIntHandler()` handles timer interrupt for the IR sensor to decode the message.  
++  `ChangeRGBColor(unsigned int)` changes the color in a rainbow fashion according to IR sensor input.  
++  `ResetImage()` clears the OLED screen and resets image with MUTE key.  
++  `GetIRInput()` gets input from IR remote.  
++  `CollectUSData()` collects data from the two ultrasonic sensors, converts them to distances and calls `ConvertToPixelLoc()`.  
++  `ConvertToPixelLoc()` converts distance data to pixel location on OLED.  
++  `DrawSizedPixel(unsigned char)` draws a pixel on OLED of specified size (4-by-4 dots by default).  
++  `SaveToRGBArr()` saves the RGB pixel data to `g_imageRGB[]`.  
++  `StartSketching()` starts sketching on the OLED display by calling `CollectUSData()`, `DrawSizedPixel(4)`, `SaveToRGBArr()` and `GetIRInput()` in an infinite loop.  
++  `http_post()` converts `g_imageRGB[]` array to a JSON readable character string with commas separating the RGB values in hexadecimal format. Then it posts the string to an AWS IoT thing.  
+
+## Amazon Web Services (AWS)
+![AWS Flowchart](/images/AWS_Flowchart.png "AWS Flowchart")  
+The drawing is sent to an AWS IoT thing shadow as a string of the RGB values using HTTP POST. When the thing shadow is updated, the **_Rule_IoTToS3_** will invoke a Lambda function called `SaveIoTMessageAsS3Object`, passing the message data. This function strips the RGB data from the IoT message and saves it as a binary file named **_“ImageRGBData.bin”_** into an S3 bucket (**_testforjpeg_**). When the binary file is generated in the **_testforjpeg_** S3 bucket, an S3 Put event occurs which invokes another Lambda function called `ConvertRGBToJpeg`, passing the binary file location. This function converts the binary file to a PNG image file and saves it as **_“image.png”_** into another S3 bucket named **_testforjpegjpeg_**. Then, user can download the PNG file. Both Lambda functions are written in Python. `ConvertRGBToJpeg` function uses OpenCV and NumPy libraries to convert RGB data to a PNG file. 
 
 ## Acknowledgements
   * [Professor Soheil Ghiasi](http://web.ece.ucdavis.edu/~soheil/)
