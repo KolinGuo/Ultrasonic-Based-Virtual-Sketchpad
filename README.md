@@ -12,7 +12,7 @@ In this open lab project, we implement a “virtual” sketch pad of 32 by 32 pi
 
 ## Top-Level Description
 ![](/images/Top-Level.png "Top-Level Block Diagram")
-![](/images/Top-DownView.png "Top-Down View of the Sketchpad")  
+![](/images/Top-DownView.PNG "Top-Down View of the Sketchpad")  
 
 The CC3200 is connected to  
   * Two ultrasonic sensors using GPIO pins  
