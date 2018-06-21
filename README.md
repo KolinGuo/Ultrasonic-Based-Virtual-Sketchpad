@@ -11,7 +11,8 @@ Today many artists use digital sketchpads to draw artworks on the computer. Howe
 In this open lab project, we implement a “virtual” sketch pad of 32 by 32 pixels using TI CC3200 LaunchPad and two ultrasonic sensors. The painting is displayed on the 128x128 OLED screen in real time. User can also interact with the IR remote to pick the colors of the pen and send the painting to Amazon Web Services (AWS) S3 bucket which automatically converts the painting to a PNG file for downloads. 
 
 ## Top-Level Description
-![](/images/Top-Level.png "Top-Level Block Diagram")  
+![](/images/Top-Level.png "Top-Level Block Diagram")
+![](/images/Top-DownView.png "Top-Down View of the Sketchpad")  
 The CC3200 is connected to  
   * Two ultrasonic sensors using GPIO pins  
   * An OLED display via SPI protocol to display drawings  
