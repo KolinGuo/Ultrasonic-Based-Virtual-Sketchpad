@@ -12,7 +12,7 @@ In this open lab project, we implement a “virtual” sketch pad of 32 by 32 pi
 
 ## Top-Level Description
 ![Top-Level Block Diagram](/images/Top-Level.png "Top-Level Block Diagram")
-![Top-Down View of the Sketchpad](/images/Top-Down_View.PNG "Top-Down View of the Sketchpad")  
+![Top-Down View of the Sketchpad](/images/Top-Down_View.png "Top-Down View of the Sketchpad")  
 
 The CC3200 is connected to  
   * Two ultrasonic sensors using GPIO pins  
@@ -41,12 +41,12 @@ The CC3200 is connected to
 
   | IR Remote Keys | Color Mapping/Functionality | IR Remote Keys | Color Mapping/Functionality |
   |:--------------:|:---------------------------:|:--------------:|:---------------------------:|
-  | 0 | Black `0x000000`| 6 | Cyan `0x00FFFF`|
-  | 1 | White `0xFFFFFF`| 7 | Azure `0x0080FF`|
-  | 2 | Red `0xFF0000`| 8 | Blue `0x0000FF`|
-  | 3 | Orange `0xFF8000`| 9 | Purple `0x7F00FF`|
-  | 4 | Yellow `0xFFFF00`| MUTE | Clear current drawing |
-  | 5 | Green `0x00FF00`| LAST | Send current drawing to AWS |  
+  | 0 | Black `0x000000` | 6 | Cyan `0x00FFFF` |
+  | 1 | White `0xFFFFFF` | 7 | Azure `0x0080FF` |
+  | 2 | Red `0xFF0000` | 8 | Blue `0x0000FF` |
+  | 3 | Orange `0xFF8000` | 9 | Purple `0x7F00FF` |
+  | 4 | Yellow `0xFFFF00` | MUTE | Clear current drawing |
+  | 5 | Green `0x00FF00` | LAST | Send current drawing to AWS |  
 
 ## CC3200 Pin Connections
   | Package Pin # | UART/SPI/GPIO Signals | Usage |
@@ -81,7 +81,16 @@ The CC3200 is connected to
 
 ## Amazon Web Services (AWS)
 ![AWS Flowchart](/images/AWS_Flowchart.png "AWS Flowchart")  
-The drawing is sent to an AWS IoT thing shadow as a string of the RGB values using HTTP POST. When the thing shadow is updated, the **_Rule_IoTToS3_** will invoke a Lambda function called `SaveIoTMessageAsS3Object`, passing the message data. This function strips the RGB data from the IoT message and saves it as a binary file named **_“ImageRGBData.bin”_** into an S3 bucket (**_testforjpeg_**). When the binary file is generated in the **_testforjpeg_** S3 bucket, an S3 Put event occurs which invokes another Lambda function called `ConvertRGBToJpeg`, passing the binary file location. This function converts the binary file to a PNG image file and saves it as **_“image.png”_** into another S3 bucket named **_testforjpegjpeg_**. Then, user can download the PNG file. Both Lambda functions are written in Python. `ConvertRGBToJpeg` function uses OpenCV and NumPy libraries to convert RGB data to a PNG file. 
+The drawing is sent to an AWS IoT thing shadow as a string of the RGB values using HTTP POST. When the thing shadow is updated, the **_Rule_IoTToS3_** will invoke a Lambda function called `SaveIoTMessageAsS3Object`, passing the message data. This function strips the RGB data from the IoT message and saves it as a binary file named **_“ImageRGBData.bin”_** into an S3 bucket (**_testforjpeg_**). When the binary file is generated in the **_testforjpeg_** S3 bucket, an S3 Put event occurs which invokes another Lambda function called `ConvertRGBToJpeg`, passing the binary file location. This function converts the binary file to a PNG image file and saves it as **_“image.png”_** into another S3 bucket named **_testforjpegjpeg_**. Then, user can download the PNG file. Both Lambda functions are written in Python. `ConvertRGBToJpeg` function uses OpenCV and NumPy libraries to convert RGB data to a PNG file.  
+![SaveIoTMessageAsS3Object Lambda Function](/images/SaveIoTMessageAsS3Object.png "SaveIoTMessageAsS3Object Lambda Function")  
+<center> Figure 1</center>  
+
+
+![ConvertRGBToJpeg Lambda Function](/images/ConvertRGBToJpeg.png "ConvertRGBToJpeg Lambda Function")  
+<center> Figure 2</center>  
+
+
+Initially, the `ConvertRGBToJpeg` function converted the RGB data to a JPEG file. However, we found that our 32x32 image is blurry. This is because JPEG is a lossy compression image format and it does not work very well for an image with such few pixels. Therefore, we modified the `ConvertRGBToJpeg` function to save the image as a PNG file which is a lossless image format and thus produces an accurate image.  
 
 ## Acknowledgements
   * [Professor Soheil Ghiasi](http://web.ece.ucdavis.edu/~soheil/)
