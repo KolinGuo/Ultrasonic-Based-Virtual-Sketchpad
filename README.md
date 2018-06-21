@@ -81,15 +81,16 @@ The CC3200 is connected to
 
 ## Amazon Web Services (AWS)
 ![AWS Flowchart](/images/AWS_Flowchart.png "AWS Flowchart")  
-The drawing is sent to an AWS IoT thing shadow as a string of the RGB values using HTTP POST. When the thing shadow is updated, the **_Rule_IoTToS3_** will invoke a Lambda function called `SaveIoTMessageAsS3Object`, passing the message data. This function strips the RGB data from the IoT message and saves it as a binary file named **_“ImageRGBData.bin”_** into an S3 bucket (**_testforjpeg_**). When the binary file is generated in the **_testforjpeg_** S3 bucket, an S3 Put event occurs which invokes another Lambda function called `ConvertRGBToJpeg`, passing the binary file location. This function converts the binary file to a PNG image file and saves it as **_“image.png”_** into another S3 bucket named **_testforjpegjpeg_**. Then, user can download the PNG file. Both Lambda functions are written in Python. `ConvertRGBToJpeg` function uses OpenCV and NumPy libraries to convert RGB data to a PNG file.  
+The drawing is sent to an AWS IoT thing shadow as a string of the RGB values using HTTP POST. When the thing shadow is updated, the **_Rule_IoTToS3_** will invoke a Lambda function called `SaveIoTMessageAsS3Object` (Figure 1), passing the message data. This function strips the RGB data from the IoT message and saves it as a binary file named **_“ImageRGBData.bin”_** into an S3 bucket (**_testforjpeg_**). When the binary file is generated in the **_testforjpeg_** S3 bucket, an S3 Put event occurs which invokes another Lambda function called `ConvertRGBToJpeg` (Figure 2), passing the binary file location. This function converts the binary file to a PNG image file and saves it as **_“image.png”_** into another S3 bucket named **_testforjpegjpeg_**. Then, user can download the PNG file. Both Lambda functions are written in Python. `ConvertRGBToJpeg` function uses OpenCV and NumPy libraries to convert RGB data to a PNG file.  
 ![SaveIoTMessageAsS3Object Lambda Function](/images/SaveIoTMessageAsS3Object.png "SaveIoTMessageAsS3Object Lambda Function")  
-
-<center> Figure 1</center>  
-
+<p align="center">
+  <b>Figure 1. <code>SaveIoTMessageAsS3Object</code> Lambda Function</b><br>
+</p>
 
 ![ConvertRGBToJpeg Lambda Function](/images/ConvertRGBToJpeg.png "ConvertRGBToJpeg Lambda Function")  
-<center> Figure 2</center>  
-
+<p align="center">
+  <b>Figure 2. <code>ConvertRGBToJpeg</code> Lambda Function</b><br>
+</p>
 
 Initially, the `ConvertRGBToJpeg` function converted the RGB data to a JPEG file. However, we found that our 32x32 image is blurry. This is because JPEG is a lossy compression image format and it does not work very well for an image with such few pixels. Therefore, we modified the `ConvertRGBToJpeg` function to save the image as a PNG file which is a lossless image format and thus produces an accurate image.  
 
