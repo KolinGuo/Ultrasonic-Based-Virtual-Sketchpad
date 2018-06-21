@@ -1,5 +1,5 @@
 # Ultrasonic-Based Virtual Sketchpad
-Embedded System Final Group Project for EEC 172 @ UC-Davis  
+Embedded System Final Group Project for EEC 172 in Spring Quarter 2018 @ UC-Davis  
 The main processing unit is **_TI CC3200 LaunchPad_**
 
 ## Group Members 
