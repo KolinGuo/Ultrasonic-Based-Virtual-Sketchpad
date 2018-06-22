@@ -1,0 +1,9 @@
+Below is a summary of updates done after Spring Quarter 2018.
+
+Date			Update Descriptions
+6/20/2018       Remove redundant code from 'main.c', improve clarity of comments.
+                In case of malfunctions, 'main.c.success.bak' is a backup of successful version. 
+                Update comments in 'ConvertRGBToJpeg.py'.
+				
+6/21/2018       Update report.
+                Re-compress demo video.	
