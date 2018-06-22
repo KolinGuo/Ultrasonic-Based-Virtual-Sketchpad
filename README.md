@@ -1,6 +1,7 @@
 # Ultrasonic-Based Virtual Sketchpad
 Embedded System Final Group Project for EEC 172 of Spring Quarter 2018 @ UC-Davis  
 The main processing unit is **_TI CC3200 LaunchPad_**  
+Demo Video on [YouTube](https://youtu.be/cgum5qhaPaw)  
 
 ### :heavy_exclamation_mark:Please refrain from using the idea and the project itself in future EEC 172 classes:heavy_exclamation_mark:
 
